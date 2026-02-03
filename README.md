@@ -1,8 +1,7 @@
 # 📅 AI Medical Assistant Chatbot — RAG-based Application
 
 
->
-> 🗂️ **Architecture PDF:** [View Architecture](./assets/MedicalAssistant.pdf)
+WEBSITE LINK:- 
 
 ---
 
@@ -10,13 +9,6 @@
 
 This application is a **Medical Domain Chatbot** built using **Retrieval-Augmented Generation (RAG)**. It allows users to upload their own medical documents (e.g., textbooks, reports), and the system intelligently answers queries by retrieving the most relevant content before generating a final response.
 
----
-
-## 🎓 What is RAG?
-
-**RAG (Retrieval-Augmented Generation)** enhances language models by supplying relevant external context from a knowledge base, preventing hallucinations and improving accuracy, especially for factual or specialized domains like **medicine**.
-
----
 
 ## 🔄 Architecture
 
@@ -32,7 +24,6 @@ Retrieved Docs
 LLM-generated Answer
 ```
 
-For a detailed view, refer to the **[MedicalAssistant.pdf](./assets/MedicalAssistant.pdf)**
 
 ---
 
@@ -51,7 +42,7 @@ For a detailed view, refer to the **[MedicalAssistant.pdf](./assets/MedicalAssis
 
 | Component  | Tech Used                  |
 | ---------- | -------------------------- |
-| LLM        | Groq API (LLaMA3-70B)      |
+| LLM        |Groq API(llama-3.1-8b-instant)      |
 | Embeddings | Google Generative AI / BGE |
 | Vector DB  | Pinecone                   |
 | Framework  | LangChain                  |
