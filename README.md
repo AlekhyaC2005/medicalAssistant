@@ -142,7 +142,7 @@ POST /ask/ --- Ask a question --- Form field: `question`
 
 ```bash
 # Clone the repo
-$ git clone https://github.com/snsupratim/medicalAssistant.git
+$ git clone https://github.com/AlekhyaC2005/medicalAssistant.git
 $ cd medicalAssistant/server
 
 # Create virtual env
@@ -189,11 +189,8 @@ $ streamlit run app.py
 
 ## 🌟 Credits
 
-- Built by Supratim Nag
+- Built by Alekhya Chatterjee
 - Inspired by LangChain, Groq, Pinecone, and FastAPI ecosystems
 
 ---
 
-## 🎉 License
-
-This project is licensed under the MIT License.
