@@ -1,187 +1,168 @@
-# 📅 AI Medical Assistant Chatbot — RAG-based Application
+🩺🩺 MediBot – Medical Assistant
 
+🔗 Live App: https://medicalassistantwithrag.streamlit.app/
 
-WEBSITE LINK:- 
+🧠 Project Overview
 
----
+The AI Medical Assistant Chatbot is a Retrieval-Augmented Generation (RAG)–based application designed to help users query medical documents safely and accurately.
 
-## 🧠 Project Overview
+Users can upload medical PDFs (reports, notes, textbooks), and the system:
 
-This application is a **Medical Domain Chatbot** built using **Retrieval-Augmented Generation (RAG)**. It allows users to upload their own medical documents (e.g., textbooks, reports), and the system intelligently answers queries by retrieving the most relevant content before generating a final response.
+Retrieves the most relevant document chunks using semantic search
 
+Generates answers strictly grounded in retrieved content
 
-## 🔄 Architecture
+Avoids hallucinations, diagnoses, and treatment advice
 
-```
-User Input
+⚠️ This application is intended for educational and informational purposes only.
+
+🔄 System Architecture
+User Query
    ↓
-Query Embedding → Pinecone Vector DB ← Embedded Chunks ← Chunking ← PDF Loader
+Query Embedding
    ↓
-Retrieved Docs
+Pinecone Vector Database
    ↓
-     RAG Chain (Groq + LangChain)
+Relevant Document Chunks
    ↓
-LLM-generated Answer
-```
+RAG Pipeline (LCEL + Groq LLaMA 3.1)
+   ↓
+Context-Grounded Answer
+
+✨ Key Features
+
+📄 Upload medical PDFs (reports, textbooks, notes)
+
+✂️ Automatic text extraction and semantic chunking
+
+🔎 Vector search using Pinecone
+
+🧠 LLaMA-3.1-8B via Groq for fast inference
+
+🛡️ Medical-safe prompting (no diagnosis or treatment advice)
+
+⚡ FastAPI backend for ingestion and querying
+
+🎨 Streamlit frontend for interactive chat
+
+🧪 Medical Safety Measures
+
+Answers generated only from retrieved documents
+
+Explicit refusal when context is insufficient
+
+No medical diagnosis or treatment recommendations
+
+Low-temperature inference to reduce hallucinations
+
+🧰 Tech Stack
+Component	Technology
+LLM	Groq API (LLaMA-3.1-8B-Instant)
+Embeddings	HuggingFace SentenceTransformers (MiniLM)
+Vector DB	Pinecone
+RAG Framework	LangChain (LCEL / RunnableSequence)
+Backend	FastAPI
+Frontend	Streamlit
+Deployment	Render
+📡 API Endpoints
+📤 Upload PDFs
+POST /upload_pdfs/
 
 
----
+Uploads one or more medical PDF documents for ingestion.
 
-## 📚 Features
-
-- Upload medical PDFs (notes, books, etc.)
-- Auto-extracts text and splits into semantic chunks
-- Embeds using Google/BGE embeddings
-- Stores vectors in **Pinecone DB**
-- Uses **Groq's LLaMA3-70B** via LangChain
-- FastAPI backend with endpoints for file upload and Q\&A
-
----
-
-## 🌐 Tech Stack
-
-| Component  | Tech Used                  |
-| ---------- | -------------------------- |
-| LLM        |Groq API(llama-3.1-8b-instant)      |
-| Embeddings | Google Generative AI / BGE |
-| Vector DB  | Pinecone                   |
-| Framework  | LangChain                  |
-| Backend    | FastAPI                    |
-| Deployment | Render                     |
-
----
-
-## 📚 API Endpoints
-
-```http
-POST /upload_pdfs/ --- Upload one or more PDF files
-
-POST /ask/ --- Ask a question --- Form field: `question`
-
-```
-
----
-
-## 📁 Folder Structure
-
-```
-└── 📁assets
-    ├── DIABETES.pdf
-    ├── MedicalAssistant.pdf
-    └── medicalAssistant.png
-```
-
-```
-└── 📁client
-    └── 📁__pycache__
-        ├── config.cpython-311.pyc
-    └── 📁components
-        └── 📁__pycache__
-            ├── chatUI.cpython-311.pyc
-            ├── history_download.cpython-311.pyc
-            ├── upload.cpython-311.pyc
-        ├── chatUI.py
-        ├── history_download.py
-        ├── upload.py
-    └── 📁utils
-        └── 📁__pycache__
-            ├── api.cpython-311.pyc
-        ├── api.py
-    ├── app.py
-    ├── config.py
-    └── requirements.txt
-```
-
-```
-└── 📁server
-    └── 📁__pycache__
-        ├── logger.cpython-311.pyc
-        ├── main.cpython-311.pyc
-        ├── test.cpython-311.pyc
-    └── 📁middlewares
-        └── 📁__pycache__
-            ├── exception_handlers.cpython-311.pyc
-        ├── exception_handlers.py
-    └── 📁modules
-        └── 📁__pycache__
-            ├── llm.cpython-311.pyc
-            ├── load_vectorstore.cpython-311.pyc
-            ├── query_handlers.cpython-311.pyc
-        ├── llm.py
-        ├── load_vectorstore.py
-        ├── pdf_handlers.py
-        ├── query_handlers.py
-    └── 📁routes
-        └── 📁__pycache__
-            ├── ask_question.cpython-311.pyc
-            ├── upload_pdfs.cpython-311.pyc
-        ├── ask_question.py
-        ├── upload_pdfs.py
-    └── 📁uploaded_docs
-        ├── DIABETES.pdf
-        ├── Supratim Nag - LOR.pdf
-    ├── .env
-    ├── logger.py
-    ├── main.py
-    ├── requirements.txt
-    └── test.py
-```
-
----
-
-## ⚡ Quick Setup
-
-```bash
-# Clone the repo
-$ git clone https://github.com/AlekhyaC2005/medicalAssistant.git
-$ cd medicalAssistant/server
-
-# Create virtual env
-$ uv venv
-$ .venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Install dependencies
-$ uv pip install -r requirements.txt
-
-# Set environment variables (.env)
-GOOGLE_API_KEY=...
-GROQ_API_KEY=...
-PINECONE_API_KEY=...
-
-# Run the server
-$ uvicorn main:app --reload --port 8000
+❓ Ask a Question
+POST /ask/
 
 
-$ cd medicalAssistant/client
+Form field: question
+Returns a context-grounded answer.
 
-# Create virtual env
-$ uv venv
-$ .venv/bin/activate  # Windows: venv\Scripts\activate
+📁 Project Structure
+medicalAssistant/
+├── client/
+│   ├── components/
+│   │   ├── chatUI.py
+│   │   ├── upload.py
+│   │   └── history_download.py
+│   ├── utils/
+│   │   └── api.py
+│   ├── app.py
+│   ├── config.py
+│   └── requirements.txt
+│
+├── server/
+│   ├── middlewares/
+│   │   └── exception_handlers.py
+│   ├── modules/
+│   │   ├── llm.py
+│   │   ├── load_vectorstore.py
+│   │   ├── pdf_handlers.py
+│   │   └── query_handlers.py
+│   ├── routes/
+│   │   ├── upload_pdfs.py
+│   │   └── ask_question.py
+│   ├── uploaded_docs/
+│   │   └── demo_medical_report.pdf
+│   ├── logger.py
+│   ├── main.py
+│   └── requirements.txt
+│
+├── .gitignore
+├── README.md
+├── pyproject.toml
+└── main.py
 
-# Install dependencies
-$ uv pip install -r requirements.txt
+⚡ Quick Setup (Local)
+1️⃣ Clone the Repository
+git clone https://github.com/AlekhyaC2005/medicalAssistant.git
+cd medicalAssistant
 
-# Run the server
-$ streamlit run app.py
-```
+2️⃣ Backend Setup (FastAPI)
+cd server
+uv venv
+.venv/bin/activate   # Windows: venv\Scripts\activate
+uv pip install -r requirements.txt
 
----
 
-## 🌐 Deployment
+Create .env:
 
-- Hosted on [Render](https://render.com)
-- Configure `start command` as:
+GROQ_API_KEY=your_groq_key
+PINECONE_API_KEY=your_pinecone_key
+PINECONE_INDEX_NAME=medicalindex
 
-  ```bash
-  uvicorn main:app --host 0.0.0.0 --port 10000
-  ```
 
----
+Run the server:
 
-## 🌟 Credits
+uvicorn main:app --reload --port 8000
 
-- Built by Alekhya Chatterjee
-- Inspired by LangChain, Groq, Pinecone, and FastAPI ecosystems
+3️⃣ Frontend Setup (Streamlit)
+cd ../client
+uv venv
+.venv/bin/activate
+uv pip install -r requirements.txt
+streamlit run app.py
 
----
+🚀 Deployment (Render)
 
+Start Command:
+
+uvicorn main:app --host 0.0.0.0 --port 10000
+
+
+Ensure environment variables are configured in Render dashboard.
+
+🧠 Design Highlights
+
+Uses LCEL (RunnableSequence) instead of deprecated RetrievalQA
+
+Custom retriever abstraction for Pinecone results
+
+Local embeddings to avoid API rate limits
+
+Clear separation of client and server responsibilities
+
+🌟 Credits
+
+Built by Alekhya Chatterjee
+Inspired by the LangChain, Groq, Pinecone, and FastAPI ecosystems.
