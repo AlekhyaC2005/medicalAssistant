@@ -3,47 +3,50 @@ import time
 from pathlib import Path
 from dotenv import load_dotenv
 from tqdm.auto import tqdm
+
 from pinecone import Pinecone, ServerlessSpec
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter 
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 load_dotenv()
 
-GOOGLE_API_KEY=os.getenv("GOOGLE_API_KEY")
-PINECONE_API_KEY=os.getenv("PINECONE_API_KEY")
-PINECONE_ENV="us-east-1"
-PINECONE_INDEX_NAME="medicalindex"
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_ENV = "us-east-1"
+PINECONE_INDEX_NAME = "medicalindex"
 
-os.environ["GOOGLE_API_KEY"]=GOOGLE_API_KEY
+UPLOAD_DIR = "./uploaded_docs"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-UPLOAD_DIR="./uploaded_docs"
-os.makedirs(UPLOAD_DIR,exist_ok=True)
+# -------------------------------
+# Initialize Pinecone
+# -------------------------------
+pc = Pinecone(api_key=PINECONE_API_KEY)
+spec = ServerlessSpec(cloud="aws", region=PINECONE_ENV)
 
+existing_indexes = [i["name"] for i in pc.list_indexes()]
 
-# initialize pinecone instance
-pc=Pinecone(api_key=PINECONE_API_KEY)
-spec=ServerlessSpec(cloud="aws",region=PINECONE_ENV)
-existing_indexes=[i["name"] for i in pc.list_indexes()]
-
-
+# MiniLM → 384 dims + cosine similarity
 if PINECONE_INDEX_NAME not in existing_indexes:
     pc.create_index(
         name=PINECONE_INDEX_NAME,
-        dimension=768,
-        metric="dotproduct",
+        dimension=384,
+        metric="cosine",
         spec=spec
     )
     while not pc.describe_index(PINECONE_INDEX_NAME).status["ready"]:
         time.sleep(1)
 
+index = pc.Index(PINECONE_INDEX_NAME)
 
-index=pc.Index(PINECONE_INDEX_NAME)
-
-# load,split,embed and upsert pdf docs content
-
+# -------------------------------
+# Load, split, embed & upsert PDFs
+# -------------------------------
 def load_vectorstore(uploaded_files):
-    embed_model = GoogleGenerativeAIEmbeddings(model="sentence-transformers/all-MiniLM-L6-v2")
+    embed_model = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+
     file_paths = []
 
     for file in uploaded_files:
@@ -56,7 +59,10 @@ def load_vectorstore(uploaded_files):
         loader = PyPDFLoader(file_path)
         documents = loader.load()
 
-        splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=500,
+            chunk_overlap=50
+        )
         chunks = splitter.split_documents(documents)
 
         texts = [chunk.page_content for chunk in chunks]
@@ -68,7 +74,12 @@ def load_vectorstore(uploaded_files):
 
         print("📤 Uploading to Pinecone...")
         with tqdm(total=len(embeddings), desc="Upserting to Pinecone") as progress:
-            index.upsert(vectors=zip(ids, embeddings, metadatas))
+            index.upsert(
+                vectors=[
+                    (ids[i], embeddings[i], metadatas[i])
+                    for i in range(len(embeddings))
+                ]
+            )
             progress.update(len(embeddings))
 
         print(f"✅ Upload complete for {file_path}")
