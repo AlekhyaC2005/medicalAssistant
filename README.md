@@ -135,7 +135,7 @@ medicalAssistant/
 git clone https://github.com/AlekhyaC2005/medicalAssistant.git
 cd medicalAssistant
 ```
-
+``` bash
 ### 2️⃣ Backend Setup (FastAPI)
 
 cd server
@@ -163,6 +163,7 @@ Run the server:
 uvicorn main:app --reload --port 8000
 
 ### 3️⃣ Frontend Setup (Streamlit)
+
 
 cd ../client
 
@@ -198,4 +199,5 @@ Clear separation of client and server responsibilities
 ### 🌟 Credits
 
 Built by Alekhya Chatterjee
+
 Inspired by the LangChain, Groq, Pinecone, and FastAPI ecosystems.
