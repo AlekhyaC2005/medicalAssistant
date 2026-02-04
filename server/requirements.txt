@@ -1,37 +1,40 @@
+# =========================
 # Web Framework
+# =========================
 fastapi
-uvicorn[standard]
-python-multipart  # for file uploads
-
-# LangChain & Ecosystem
-langchain
-langchain-community
-langchain-text-splitters
-langchain-core
-langchain-groq
-
-# Vectorstore
-# chromadb
-pinecone
-
-# Embeddings
-# sentence-transformers
-sentence-transformers
-
-# PDF Parsing
-PyPDF  # backend for PyPDFLoader via langchain_community
-
-# Environment Variables
+uvicorn
+python-multipart
 python-dotenv
 
-# Typing & Utilities
+# =========================
+# LangChain Ecosystem
+# =========================
+langchain
+langchain-core
+langchain-community
+langchain-text-splitters
+langchain-groq
+
+# =========================
+# Embeddings (Local)
+# =========================
+sentence-transformers
+
+# =========================
+# Vector Database
+# =========================
+pinecone
+
+# =========================
+# PDF Processing
+# =========================
+pypdf
+
+# =========================
+# Utilities
+# =========================
 pydantic
 requests
 tqdm
-
-# Logging (optional but recommended)
 loguru
 
-
-
-#  uv pip install -r requirements.txt
