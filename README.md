@@ -135,6 +135,7 @@ cd medicalAssistant
 ```
 
 ### 2️⃣ Backend Setup (FastAPI)
+
 cd server
 uv venv
 .venv/bin/activate   # Windows: venv\Scripts\activate
@@ -147,6 +148,7 @@ Create .env:
 GROQ_API_KEY=your_groq_key
 PINECONE_API_KEY=your_pinecone_key
 PINECONE_INDEX_NAME=medicalindex
+
 
 
 Run the server:
