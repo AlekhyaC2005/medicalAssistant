@@ -5,7 +5,7 @@ from modules.query_handlers import query_chain
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 
 from pinecone import Pinecone
 from pydantic import Field
