@@ -108,13 +108,13 @@ medicalAssistant/
 │   ├── modules/
 │   │   ├── llm.py
 │   │   ├── load_vectorstore.py
-│   │   ├── pdf_handlers.py
-│   │   └── query_handlers.py
+│   │   ├── mem_client.py
+│   │ 
 │   ├── routes/
 │   │   ├── upload_pdfs.py
 │   │   └── ask_question.py
 │   ├── uploaded_docs/
-│   │   └── demo_medical_report.pdf
+│   │   └── active.pdf
 │   ├── logger.py
 │   ├── main.py
 │   └── requirements.txt
