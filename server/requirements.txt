@@ -27,7 +27,7 @@ google-genai
 # ------------------------
 # Vector Store (mem0 + Qdrant)
 # ------------------------
-mem0
+mem0ai
 qdrant-client
 
 # ------------------------
