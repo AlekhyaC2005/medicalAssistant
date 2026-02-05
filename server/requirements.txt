@@ -1,41 +1,39 @@
-# =========================
+# ------------------------
 # Web Framework
-# =========================
+# ------------------------
 fastapi
-uvicorn
+uvicorn[standard]
 python-multipart
+
+# ------------------------
+# Environment Variables
+# ------------------------
 python-dotenv
 
-# =========================
-# LangChain Ecosystem
-# =========================
-langchain
-langchain-huggingface
-langchain-core
+# ------------------------
+# PDF Processing
+# ------------------------
+pypdf
 langchain-community
 langchain-text-splitters
+
+# ------------------------
+# LLM & RAG
+# ------------------------
+langchain-core
 langchain-groq
+google-genai
 
-# =========================
-# Embeddings (Local)
-# =========================
-sentence-transformers
+# ------------------------
+# Vector Store (mem0 + Qdrant)
+# ------------------------
+mem0
+qdrant-client
 
-# =========================
-# Vector Database
-# =========================
-pinecone
-
-# =========================
-# PDF Processing
-# =========================
-pypdf
-
-# =========================
+# ------------------------
 # Utilities
-# =========================
+# ------------------------
 pydantic
 requests
 tqdm
 loguru
-
