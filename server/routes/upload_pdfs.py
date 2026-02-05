@@ -1,19 +1,13 @@
+# routes/upload_pdfs.py
 from fastapi import APIRouter, UploadFile, File
-from typing import List
-from modules.load_vectorstore import load_vectorstore
-from fastapi.responses import JSONResponse
-from logger import logger
+from modules.load_vectorstore import ingest_pdf
 
+router = APIRouter()
 
-router=APIRouter()
-
-@router.post("/upload_pdfs/")
-async def upload_pdfs(files:List[UploadFile] = File(...)):
-    try:
-        logger.info("Recieved uploaded files")
-        load_vectorstore(files)
-        logger.info("Document added to vectorstore")
-        return {"messages":"Files processed and vectorstore updated"}
-    except Exception as e:
-        logger.exception("Error during PDF upload")
-        return JSONResponse(status_code=500,content={"error":str(e)})
+@router.post("/upload_pdf/")
+async def upload_pdf(file: UploadFile = File(...)):
+    result = ingest_pdf(file)
+    return {
+        "message": "PDF uploaded successfully",
+        **result
+    }
