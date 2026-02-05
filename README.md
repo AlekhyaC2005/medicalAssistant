@@ -1,4 +1,4 @@
-# 🩺 AI Medical Assistant Chatbot — RAG-Based Application
+# 🩺🩺 MediBot – Medical Assistant
 
 🔗 **Live App:** https://medicalassistantwithrag.streamlit.app/
 
