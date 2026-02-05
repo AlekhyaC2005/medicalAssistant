@@ -3,57 +3,40 @@ from loguru import logger
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from modules.mem_client import mem_client   # ← EXACT client you created
-
-UPLOAD_DIR = "./uploaded_docs"
-ACTIVE_PDF_PATH = os.path.join(UPLOAD_DIR, "active.pdf")
-
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+from modules.mem_client import mem_client   # your existing client
 
 # -------------------------------
-# Reset previous memory
+# Single active PDF (no directory)
 # -------------------------------
-def reset_memory():
-    """
-    Clears existing vector memory stored in Qdrant via mem0.
-    """
-    logger.info("Resetting existing memory")
-    mem_client.reset()
+ACTIVE_PDF_PATH = "active.pdf"
 
 
-# -------------------------------
-# Ingest ONE PDF (overwrite mode)
-# -------------------------------
 def ingest_pdf(upload_file):
     """
-    - Deletes previous PDF
-    - Clears Qdrant memory via mem0
-    - Saves new PDF
-    - Chunks and stores content using mem0
+    Upload ONE PDF at a time.
+    Each new upload overwrites active.pdf
     """
 
     logger.info("Starting PDF ingestion")
 
-    # 1️⃣ Delete previous PDF
-    if os.path.exists(ACTIVE_PDF_PATH):
-        os.remove(ACTIVE_PDF_PATH)
-        logger.info("Previous PDF deleted")
+    # 1️⃣ Reset vector memory (single-document policy)
+    mem_client.reset()
+    logger.info("Previous vector memory cleared")
 
-    # 2️⃣ Reset vector memory
-    reset_memory()
-
-    # 3️⃣ Save uploaded PDF
+    # 2️⃣ Save uploaded PDF as active.pdf
     with open(ACTIVE_PDF_PATH, "wb") as f:
         f.write(upload_file.file.read())
 
-    # 4️⃣ Load PDF
+    logger.info("active.pdf saved successfully")
+
+    # 3️⃣ Load PDF
     loader = PyPDFLoader(ACTIVE_PDF_PATH)
     documents = loader.load()
 
     if not documents:
-        raise ValueError("No text extracted from PDF")
+        raise ValueError("No text could be extracted from the PDF")
 
-    # 5️⃣ Chunk text
+    # 4️⃣ Chunk PDF
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=50
@@ -61,9 +44,9 @@ def ingest_pdf(upload_file):
     chunks = splitter.split_documents(documents)
 
     if not chunks:
-        raise ValueError("No chunks created from PDF")
+        raise ValueError("No chunks created from the PDF")
 
-    # 6️⃣ Store chunks in mem0 (Qdrant + Gemini embeddings)
+    # 5️⃣ Store chunks in vector memory
     for idx, chunk in enumerate(chunks):
         mem_client.add(
             content=chunk.page_content,
@@ -74,7 +57,7 @@ def ingest_pdf(upload_file):
             }
         )
 
-    logger.info(f"PDF ingestion completed: {len(chunks)} chunks stored")
+    logger.info(f"Ingestion complete: {len(chunks)} chunks stored")
 
     return {
         "file": upload_file.filename,
