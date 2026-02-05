@@ -12,9 +12,3 @@ async def upload_pdf(file: UploadFile = File(...)):
         **result
     }
 
-def ask_question(question: str):
-    response = requests.post(
-        f"{API_URL}/ask",
-        data={"question": question}
-    )
-    return response.json()
