@@ -1,85 +1,82 @@
 import os
-import time
-from pathlib import Path
-from dotenv import load_dotenv
-from tqdm.auto import tqdm
-
-from pinecone import Pinecone, ServerlessSpec
+from loguru import logger
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 
-load_dotenv()
-
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-PINECONE_ENV = "us-east-1"
-PINECONE_INDEX_NAME = "medicalindex"
+from modules.mem_client import mem_client   # ← EXACT client you created
 
 UPLOAD_DIR = "./uploaded_docs"
+ACTIVE_PDF_PATH = os.path.join(UPLOAD_DIR, "active.pdf")
+
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # -------------------------------
-# Initialize Pinecone
+# Reset previous memory
 # -------------------------------
-pc = Pinecone(api_key=PINECONE_API_KEY)
-spec = ServerlessSpec(cloud="aws", region=PINECONE_ENV)
+def reset_memory():
+    """
+    Clears existing vector memory stored in Qdrant via mem0.
+    """
+    logger.info("Resetting existing memory")
+    mem_client.reset()
 
-existing_indexes = [i["name"] for i in pc.list_indexes()]
 
-# MiniLM → 384 dims + cosine similarity
-if PINECONE_INDEX_NAME not in existing_indexes:
-    pc.create_index(
-        name=PINECONE_INDEX_NAME,
-        dimension=384,
-        metric="cosine",
-        spec=spec
+# -------------------------------
+# Ingest ONE PDF (overwrite mode)
+# -------------------------------
+def ingest_pdf(upload_file):
+    """
+    - Deletes previous PDF
+    - Clears Qdrant memory via mem0
+    - Saves new PDF
+    - Chunks and stores content using mem0
+    """
+
+    logger.info("Starting PDF ingestion")
+
+    # 1️⃣ Delete previous PDF
+    if os.path.exists(ACTIVE_PDF_PATH):
+        os.remove(ACTIVE_PDF_PATH)
+        logger.info("Previous PDF deleted")
+
+    # 2️⃣ Reset vector memory
+    reset_memory()
+
+    # 3️⃣ Save uploaded PDF
+    with open(ACTIVE_PDF_PATH, "wb") as f:
+        f.write(upload_file.file.read())
+
+    # 4️⃣ Load PDF
+    loader = PyPDFLoader(ACTIVE_PDF_PATH)
+    documents = loader.load()
+
+    if not documents:
+        raise ValueError("No text extracted from PDF")
+
+    # 5️⃣ Chunk text
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=500,
+        chunk_overlap=50
     )
-    while not pc.describe_index(PINECONE_INDEX_NAME).status["ready"]:
-        time.sleep(1)
+    chunks = splitter.split_documents(documents)
 
-index = pc.Index(PINECONE_INDEX_NAME)
+    if not chunks:
+        raise ValueError("No chunks created from PDF")
 
-# -------------------------------
-# Load, split, embed & upsert PDFs
-# -------------------------------
-def load_vectorstore(uploaded_files):
-    embed_model = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
-    )
-
-    file_paths = []
-
-    for file in uploaded_files:
-        save_path = Path(UPLOAD_DIR) / file.filename
-        with open(save_path, "wb") as f:
-            f.write(file.file.read())
-        file_paths.append(str(save_path))
-
-    for file_path in file_paths:
-        loader = PyPDFLoader(file_path)
-        documents = loader.load()
-
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size=500,
-            chunk_overlap=50
+    # 6️⃣ Store chunks in mem0 (Qdrant + Gemini embeddings)
+    for idx, chunk in enumerate(chunks):
+        mem_client.add(
+            content=chunk.page_content,
+            metadata={
+                "source": "active.pdf",
+                "page": chunk.metadata.get("page"),
+                "chunk_id": idx
+            }
         )
-        chunks = splitter.split_documents(documents)
 
-        texts = [chunk.page_content for chunk in chunks]
-        metadatas = [chunk.metadata for chunk in chunks]
-        ids = [f"{Path(file_path).stem}-{i}" for i in range(len(chunks))]
+    logger.info(f"PDF ingestion completed: {len(chunks)} chunks stored")
 
-        print(f"🔍 Embedding {len(texts)} chunks...")
-        embeddings = embed_model.embed_documents(texts)
-
-        print("📤 Uploading to Pinecone...")
-        with tqdm(total=len(embeddings), desc="Upserting to Pinecone") as progress:
-            index.upsert(
-                vectors=[
-                    (ids[i], embeddings[i], metadatas[i])
-                    for i in range(len(embeddings))
-                ]
-            )
-            progress.update(len(embeddings))
-
-        print(f"✅ Upload complete for {file_path}")
+    return {
+        "file": upload_file.filename,
+        "chunks_indexed": len(chunks)
+    }
